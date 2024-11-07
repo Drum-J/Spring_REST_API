@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: restApi
+
+  h2:
+    console:
+      enabled: true
