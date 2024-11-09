@@ -5,3 +5,7 @@ spring:
   h2:
     console:
       enabled: true
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
