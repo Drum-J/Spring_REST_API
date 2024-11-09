@@ -89,4 +89,22 @@ public class EventControllerTests {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void createEvent_Bad_Request_Empty_Input() throws Exception {
+        //given
+        EventDto eventDto = EventDto.builder()
+                .build();
+
+        //when
+
+        //then
+        mockMvc.perform(post("/api/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(eventDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 }
