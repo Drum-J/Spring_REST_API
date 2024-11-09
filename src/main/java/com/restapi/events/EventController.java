@@ -1,6 +1,5 @@
 package com.restapi.events;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,10 +22,11 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createEvent(@RequestBody Event event) {
+    public ResponseEntity<Object> createEvent(@RequestBody EventDto eventDto) {
+        Event event = eventDto.toEntity();
         Event newEvent = eventRepository.save(event);
 
         URI createdUri = linkTo(EventController.class).toUri();
-        return ResponseEntity.created(createdUri).body(event);
+        return ResponseEntity.created(createdUri).body(newEvent);
     }
 }
