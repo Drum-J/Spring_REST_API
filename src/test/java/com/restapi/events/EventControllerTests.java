@@ -124,7 +124,7 @@ public class EventControllerTests {
                 .closeEnrollmentDateTime(now.plusDays(2))
                 .beginEventDateTime(now.plusDays(1))
                 .endEventDateTime(now) // 이벤트 끝나는 날짜가 더 빠름
-                .basePrice(100)
+                .basePrice(10000)
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("home")
@@ -139,6 +139,12 @@ public class EventControllerTests {
                         .content(objectMapper.writeValueAsString(eventDto))
                 )
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())
+                //.andExpect(jsonPath("$[0].field").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                //.andExpect(jsonPath("$[0].rejectedValue").exists())
+        ;
     }
 }
