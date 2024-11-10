@@ -2,6 +2,7 @@ package com.restapi.events;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,7 @@ public class EventController {
         EventResource eventResource = new EventResource(event);
         eventResource.add(linkBuilder.withRel("query-events"));
         eventResource.add(linkBuilder.slash(event.getId()).withRel("update-event"));
+        eventResource.add(Link.of("/docs/index.html#resources-event-create").withRel("profile"));
 
         return ResponseEntity.created(createdUri).body(eventResource);
     }

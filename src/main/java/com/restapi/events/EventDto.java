@@ -47,7 +47,6 @@ public class EventDto {
                 .basePrice(this.basePrice)
                 .maxPrice(this.maxPrice)
                 .limitOfEnrollment(this.limitOfEnrollment)
-                .eventStatus(EventStatus.DRAFT)
                 .build();
     }
 }
