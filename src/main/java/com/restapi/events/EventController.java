@@ -1,5 +1,6 @@
 package com.restapi.events;
 
+import com.restapi.common.ErrorsResource;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.Link;
@@ -28,12 +29,12 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Object> createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
 
         eventValidator.validate(eventDto, errors);
         if (errors.hasErrors()) {
-            return ResponseEntity.badRequest().body(errors);
+            return badRequest(errors);
         }
 
         Event event = eventDto.toEntity();
@@ -49,5 +50,9 @@ public class EventController {
         eventResource.add(Link.of("/docs/index.html#resources-event-create").withRel("profile"));
 
         return ResponseEntity.created(createdUri).body(eventResource);
+    }
+
+    private static ResponseEntity<Object> badRequest(Errors errors) {
+        return ResponseEntity.badRequest().body(new ErrorsResource(errors));
     }
 }
