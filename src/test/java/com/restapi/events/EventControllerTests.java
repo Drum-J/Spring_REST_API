@@ -17,6 +17,7 @@ import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
@@ -28,6 +29,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -43,6 +45,7 @@ public class EventControllerTests {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
+    @Autowired EventRepository eventRepository;
 
     @Test
     @DisplayName("정상적으로 이벤트를 생성하는 테스트")
@@ -210,5 +213,77 @@ public class EventControllerTests {
                 //.andExpect(jsonPath("_links.index").exists())
                 //.andExpect(jsonPath("$[0].rejectedValue").exists())
         ;
+    }
+
+    @Test
+    @DisplayName("30개의 이벤트를 10개씩 두번째 페이지 조회하기")
+    void queryEvents() throws Exception {
+        //given
+        IntStream.range(0,30).forEach(this::generateEvent);
+
+        //when
+        mockMvc.perform(get("/api/events")
+                        .param("page","1")
+                        .param("size","10")
+                        .param("sort","name,DESC")
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page").exists())
+                .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists())
+                .andDo(document("query-events",
+                        links(
+                                linkWithRel("first").description("첫 페이지"),
+                                linkWithRel("prev").description("이전 페이지"),
+                                linkWithRel("self").description("현재 페이지"),
+                                linkWithRel("next").description("다음 페이지"),
+                                linkWithRel("last").description("마지막 페이지"),
+                                linkWithRel("profile").description("link to profile")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content-type header")
+                        ),
+                        responseFields(
+                                fieldWithPath("_embedded").description("PagedModel<EntityModel<Event>> 사용 시 생김"),
+                                fieldWithPath("_embedded.eventList").description("PagedModel<EntityModel<Event>> 사용 시 생김, 이벤트 리스트"),
+                                fieldWithPath("_embedded.eventList[].id").description("identifier of new Event"),
+                                fieldWithPath("_embedded.eventList[].name").description("name of new Event"),
+                                fieldWithPath("_embedded.eventList[].description").description("description of new Event"),
+                                fieldWithPath("_embedded.eventList[].beginEnrollmentDateTime").description("beginEnrollmentDateTime of new Event"),
+                                fieldWithPath("_embedded.eventList[].closeEnrollmentDateTime").description("closeEnrollmentDateTime of new Event"),
+                                fieldWithPath("_embedded.eventList[].beginEventDateTime").description("beginEventDateTime of new Event"),
+                                fieldWithPath("_embedded.eventList[].endEventDateTime").description("endEventDateTime of new Event"),
+                                fieldWithPath("_embedded.eventList[].location").description("location of new Event"),
+                                fieldWithPath("_embedded.eventList[].basePrice").description("basePrice of new Event"),
+                                fieldWithPath("_embedded.eventList[].maxPrice").description("maxPrice of new Event"),
+                                fieldWithPath("_embedded.eventList[].limitOfEnrollment").description("limitOfEnrollment of new Event"),
+                                fieldWithPath("_embedded.eventList[].free").description("it tells is this event is free or not"),
+                                fieldWithPath("_embedded.eventList[].offline").description("it tells is this event is offline event or not"),
+                                fieldWithPath("_embedded.eventList[].eventStatus").description("event status"),
+                                fieldWithPath("page").description("PagedModel<EntityModel<Event>> 사용 시 page, Page<Event>만 사용시 pageable"),
+                                fieldWithPath("page.size").description("한 페이지 당 데이터 수"),
+                                fieldWithPath("page.totalElements").description("전체 데이터 수"),
+                                fieldWithPath("page.totalPages").description("전체 페이지 수 (1,2,3 으로 카운트)"),
+                                fieldWithPath("page.number").description("현재 페이지 (0,1,2 로 카운트)"),
+                                subsectionWithPath("_embedded.eventList[]._links").ignored(),
+                                subsectionWithPath("_links").ignored()
+                        )
+                    )
+                )
+        ;
+
+        //then
+
+    }
+
+    private void generateEvent(int index) {
+        Event event = Event.builder()
+                .name("event "+index)
+                .description("test event")
+                .build();
+
+        eventRepository.save(event);
     }
 }
