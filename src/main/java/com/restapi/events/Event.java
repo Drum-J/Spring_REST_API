@@ -44,4 +44,17 @@ public class Event {
         // update offline
         this.offline = this.location != null && !this.location.isBlank();
     }
+
+    public void updateWithDto(EventDto eventDto) {
+        this.name = eventDto.getName();
+        this.description = eventDto.getDescription();
+        this.beginEnrollmentDateTime = eventDto.getBeginEnrollmentDateTime();
+        this.closeEnrollmentDateTime = eventDto.getCloseEnrollmentDateTime();
+        this.beginEventDateTime = eventDto.getBeginEventDateTime();
+        this.endEventDateTime = eventDto.getEndEventDateTime();
+        this.location = eventDto.getLocation();
+        this.basePrice = eventDto.getBasePrice();
+        this.maxPrice = eventDto.getMaxPrice();
+        this.limitOfEnrollment = eventDto.getLimitOfEnrollment();
+    }
 }

@@ -34,6 +34,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -338,6 +339,105 @@ public class EventControllerTests {
     void getEvent404() throws Exception {
         mockMvc.perform(get("/api/events/11234"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("기존의 이벤트 업데이트 하기")
+    void updateEvent() throws Exception {
+        //given
+        Event event = generateEvent(123);
+        String updateName = "Updated Event";
+        LocalDateTime now = LocalDateTime.now();
+        EventDto eventDto = EventDto.builder()
+                .name(updateName)
+                .description("test event")
+                .beginEnrollmentDateTime(now)
+                .closeEnrollmentDateTime(now.plusDays(1))
+                .beginEventDateTime(now.plusDays(2))
+                .endEventDateTime(now.plusDays(3))
+                .location("home")
+                .basePrice(0)
+                .maxPrice(0)
+                .limitOfEnrollment(100)
+                .build();
+
+        //when
+        mockMvc.perform(put("/api/events/{id}",event.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(eventDto))
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").value(updateName))
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists())
+        ;
+        //then
+
+    }
+
+    @Test
+    @DisplayName("없는 이벤트를 업데이트 했을 때 404 응답받기")
+    void updateEvent404() throws Exception {
+        EventDto eventDto = new EventDto();
+        mockMvc.perform(put("/api/events/11234")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(eventDto))
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("업데이트 : 비어있는 데이터를 보냈을 때 400")
+    void updateEvent400_Empty() throws Exception {
+        //given
+        Event event = generateEvent(123);
+        EventDto eventDto = new EventDto();
+
+        //when
+        mockMvc.perform(put("/api/events/{id}",event.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(eventDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+        //then
+
+    }
+
+    @Test
+    @DisplayName("업데이트 : 잘못된 데이터를 보냈을 때 400")
+    void updateEvnet400_Wrong() throws Exception {
+        //given
+        Event event = generateEvent(123);
+        String updateName = "Updated Event";
+        LocalDateTime now = LocalDateTime.now();
+        EventDto eventDto = EventDto.builder()
+                .name(updateName)
+                .description("test event")
+                .beginEnrollmentDateTime(now)
+                .closeEnrollmentDateTime(now.plusDays(1))
+                .beginEventDateTime(now.plusDays(2))
+                .endEventDateTime(now.plusDays(3))
+                .location("home")
+                .basePrice(20000) // base Price > max Price : validate 에서 에러
+                .maxPrice(100)
+                .limitOfEnrollment(100)
+                .build();
+
+        //when
+        mockMvc.perform(put("/api/events/{id}",event.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaTypes.HAL_JSON)
+                        .content(objectMapper.writeValueAsString(eventDto))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+        //then
+
     }
 
     private Event generateEvent(int index) {
