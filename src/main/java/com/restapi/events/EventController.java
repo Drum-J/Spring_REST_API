@@ -76,8 +76,11 @@ public class EventController {
             return ResponseEntity.notFound().build();
         }
 
+        WebMvcLinkBuilder linkBuilder = linkTo(EventController.class);
         EventResource resource = new EventResource(event.get());
         resource.add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
+        resource.add(linkBuilder.withRel("query-events"));
+        resource.add(linkBuilder.slash(event.get().getId()).withRel("update-event"));
 
         return ResponseEntity.ok(resource);
     }

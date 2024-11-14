@@ -14,6 +14,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,8 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -285,13 +288,46 @@ public class EventControllerTests {
         Event event = generateEvent(100);
 
         //when
-        mockMvc.perform(get("/api/events/{id}", event.getId()))
+        mockMvc.perform(RestDocumentationRequestBuilders.get("/api/events/{id}", event.getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(jsonPath("name").exists())
                 .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.query-events").exists())
+                .andExpect(jsonPath("_links.update-event").exists())
                 .andExpect(jsonPath("_links.profile").exists())
+                .andDo(document("get-event",
+                        links(
+                                linkWithRel("self").description("link to self"),
+                                linkWithRel("query-events").description("이벤트 목록 Link"),
+                                linkWithRel("update-event").description("이벤트 업데이트 Link"),
+                                linkWithRel("profile").description("상세 설명 문서 Link")
+                        ),
+                        pathParameters(
+                                parameterWithName("id").description("이벤트 ID")
+                        ),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.CONTENT_TYPE).description("content-type header : [application/hal+json]")
+                        ),
+                        responseFields(
+                                fieldWithPath("id").description("identifier of new Event"),
+                                fieldWithPath("name").description("name of new Event"),
+                                fieldWithPath("description").description("description of new Event"),
+                                fieldWithPath("beginEnrollmentDateTime").description("beginEnrollmentDateTime of new Event"),
+                                fieldWithPath("closeEnrollmentDateTime").description("closeEnrollmentDateTime of new Event"),
+                                fieldWithPath("beginEventDateTime").description("beginEventDateTime of new Event"),
+                                fieldWithPath("endEventDateTime").description("endEventDateTime of new Event"),
+                                fieldWithPath("location").description("location of new Event"),
+                                fieldWithPath("basePrice").description("basePrice of new Event"),
+                                fieldWithPath("maxPrice").description("maxPrice of new Event"),
+                                fieldWithPath("limitOfEnrollment").description("limitOfEnrollment of new Event"),
+                                fieldWithPath("free").description("it tells is this event is free or not"),
+                                fieldWithPath("offline").description("it tells is this event is offline event or not"),
+                                fieldWithPath("eventStatus").description("event status"),
+                                subsectionWithPath("_links").ignored()
+                        )
+                ))
         ;
         //then
 
