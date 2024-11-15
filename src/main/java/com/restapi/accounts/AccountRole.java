@@ -1,5 +1,5 @@
 package com.restapi.accounts;
 
-public enum AcountRole {
+public enum AccountRole {
     ADMIN, USER
 }

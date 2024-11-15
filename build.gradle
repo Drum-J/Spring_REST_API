@@ -45,6 +45,10 @@ dependencies {
 
     // Add ascii
     asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+
+    // Add Spring Security OAuth2 AutoConfigure
+    implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.6.8'
+
 }
 
 tasks.named('test') {
